@@ -47,3 +47,4 @@ testpaths = ["tests"]
 
 [tool.poe.tasks]
 check = { shell = "ruff check src tests && ruff format --check src tests && pyright src tests && pytest" }
+evals = { shell = "python -m tests.evals.run_evals" }
