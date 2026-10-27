@@ -43,4 +43,9 @@ async def check_stock(query: StockQuery) -> StockReport:
 
 
 if __name__ == "__main__":
+    import asyncio
+
+    from src.shared.keyvault import hydrate_from_keyvault
+
+    asyncio.run(hydrate_from_keyvault())
     mcp.run(transport="streamable-http")

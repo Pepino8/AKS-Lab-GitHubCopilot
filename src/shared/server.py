@@ -12,6 +12,7 @@ from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel, ConfigDict, Field
 from structlog.contextvars import bind_contextvars, clear_contextvars
 
+from .keyvault import hydrate_from_keyvault
 from .settings import Settings
 from .telemetry import setup_tracing
 
@@ -83,6 +84,7 @@ def make_app(*, name: str, build: AgentBuilder, settings: Settings | None = None
     @asynccontextmanager
     async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
         nonlocal agent
+        await hydrate_from_keyvault()
         setup_tracing(service_name=name)
         log.info("agent.startup.begin", agent_name=name)
         agent = await build(app_settings)
