@@ -2,7 +2,7 @@ FROM python:3.11-slim AS builder
 
 ENV UV_SYSTEM_PYTHON=1
 RUN python -m pip install --no-cache-dir uv
-RUN uv pip install --system mcp pydantic structlog
+RUN uv pip install --system mcp pydantic structlog uvicorn azure-identity azure-keyvault-secrets
 
 FROM python:3.11-slim AS runtime
 
@@ -15,6 +15,7 @@ RUN useradd -m -u 10001 zava
 WORKDIR /app
 
 COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 COPY src /app/src
 
 USER zava
