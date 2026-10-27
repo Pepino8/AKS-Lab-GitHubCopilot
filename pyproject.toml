@@ -10,7 +10,7 @@ dependencies = [
     "azure-keyvault-secrets>=4.11.3",
     "fastapi",
     "httpx",
-    "mcp",
+    "mcp<2",
     "opentelemetry-api",
     "opentelemetry-sdk",
     "pydantic>=2",

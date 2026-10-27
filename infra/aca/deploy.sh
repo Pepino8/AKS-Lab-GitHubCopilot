@@ -13,9 +13,11 @@ source .env.lab
 : "${UAMI_RESOURCE_ID:?missing UAMI_RESOURCE_ID}"
 : "${UAMI_CLIENT_ID:?missing UAMI_CLIENT_ID}"
 
+export MSYS_NO_PATHCONV=1
+
 GIT_SHA="${DEPLOY_SHA:-${GIT_SHA:-$(git rev-parse --short HEAD)}}"
 ACR_LOGIN_SERVER="${ACR}.azurecr.io"
-CAE_ID="$(az containerapp env show -g "$RG" -n "$CAE" --query id -o tsv)"
+CAE_ID="$(az containerapp env show -g "$RG" -n "$CAE" --query id -o tsv | tr -d '\r')"
 ENV_FILE=".env.fqdns"
 
 deploy_app() {
@@ -24,6 +26,16 @@ deploy_app() {
   local target_port="$3"
   local mcp_json="${4:-{}}"
   local image="${ACR_LOGIN_SERVER}/zavashop/${image_name}:${GIT_SHA}"
+
+  local mcp_file=""
+  local mcp_arg=""
+  if [[ -n "${4:-}" ]]; then
+    mcp_file="tmp_mcp_${name}.json"
+    printf '%s\n' "$mcp_json" > "$mcp_file"
+    mcp_arg="mcpEndpoints=@${mcp_file}"
+  else
+    mcp_arg="mcpEndpoints={}"
+  fi
 
   az deployment group create \
     -g "$RG" \
@@ -36,13 +48,15 @@ deploy_app() {
     -p uamiClientId="$UAMI_CLIENT_ID" \
     -p keyVaultName="$KV" \
     -p targetPort="$target_port" \
-    -p mcpEndpoints="$mcp_json" \
+    -p "$mcp_arg" \
     -p exposeIngress=true \
     -p minReplicas=1 \
     -o none
 
+  [[ -n "$mcp_file" ]] && rm -f "$mcp_file"
+
   local fqdn
-  fqdn="$(az containerapp show -g "$RG" -n "$name" --query properties.configuration.ingress.fqdn -o tsv)"
+  fqdn="$(az containerapp show -g "$RG" -n "$name" --query properties.configuration.ingress.fqdn -o tsv | tr -d '\r')"
   printf 'ZAVA_%s_URL=https://%s/invoke\n' "$(echo "$name" | tr '[:lower:]-' '[:upper:]_')" "$fqdn" >> "$ENV_FILE"
 }
 
@@ -53,10 +67,10 @@ deploy_app supplier-mcp supplier-mcp 8080
 deploy_app shipping-mcp shipping-mcp 8080
 deploy_app pricing-mcp pricing-mcp 8080
 
-INVENTORY_MCP_URL="https://$(az containerapp show -g "$RG" -n inventory-mcp --query properties.configuration.ingress.fqdn -o tsv)/mcp"
-SUPPLIER_MCP_URL="https://$(az containerapp show -g "$RG" -n supplier-mcp --query properties.configuration.ingress.fqdn -o tsv)/mcp"
-SHIPPING_MCP_URL="https://$(az containerapp show -g "$RG" -n shipping-mcp --query properties.configuration.ingress.fqdn -o tsv)/mcp"
-PRICING_MCP_URL="https://$(az containerapp show -g "$RG" -n pricing-mcp --query properties.configuration.ingress.fqdn -o tsv)/mcp"
+INVENTORY_MCP_URL="https://$(az containerapp show -g "$RG" -n inventory-mcp --query properties.configuration.ingress.fqdn -o tsv | tr -d '\r')/mcp"
+SUPPLIER_MCP_URL="https://$(az containerapp show -g "$RG" -n supplier-mcp --query properties.configuration.ingress.fqdn -o tsv | tr -d '\r')/mcp"
+SHIPPING_MCP_URL="https://$(az containerapp show -g "$RG" -n shipping-mcp --query properties.configuration.ingress.fqdn -o tsv | tr -d '\r')/mcp"
+PRICING_MCP_URL="https://$(az containerapp show -g "$RG" -n pricing-mcp --query properties.configuration.ingress.fqdn -o tsv | tr -d '\r')/mcp"
 
 deploy_app inventory inventory 8000 "{\"ZAVA_INVENTORY_MCP_URL\":\"$INVENTORY_MCP_URL\"}"
 deploy_app supplier supplier 8000 "{\"ZAVA_SUPPLIER_MCP_URL\":\"$SUPPLIER_MCP_URL\"}"

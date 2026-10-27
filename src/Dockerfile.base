@@ -5,9 +5,11 @@ RUN python -m pip install --no-cache-dir uv
 RUN uv pip install --system \
     agent-framework-core \
     agent-framework-github-copilot \
+    azure-identity \
+    azure-keyvault-secrets \
     fastapi \
     httpx \
-    mcp \
+    "mcp<2" \
     opentelemetry-api \
     opentelemetry-sdk \
     pydantic \

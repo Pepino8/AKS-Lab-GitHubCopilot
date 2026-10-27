@@ -1317,7 +1317,7 @@ requires-dist = [
     { name = "azure-keyvault-secrets", specifier = ">=4.11.3" },
     { name = "fastapi" },
     { name = "httpx" },
-    { name = "mcp" },
+    { name = "mcp", specifier = "<2" },
     { name = "opentelemetry-api" },
     { name = "opentelemetry-sdk" },
     { name = "pydantic", specifier = ">=2" },

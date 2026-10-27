@@ -2,7 +2,7 @@ FROM python:3.11-slim AS builder
 
 ENV UV_SYSTEM_PYTHON=1
 RUN python -m pip install --no-cache-dir uv
-RUN uv pip install --system mcp pydantic structlog uvicorn azure-identity azure-keyvault-secrets
+RUN uv pip install --system "mcp<2" pydantic structlog uvicorn azure-identity azure-keyvault-secrets
 
 FROM python:3.11-slim AS runtime
 
